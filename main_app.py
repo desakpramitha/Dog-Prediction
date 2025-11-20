@@ -67,7 +67,7 @@ CLASS_NAMES = [
     "saluki"
 ]
 
-#Setting Title of App
+# Setting Title of App
 st.title("Dog Breed Identification")
 
 # Inisialisasi state

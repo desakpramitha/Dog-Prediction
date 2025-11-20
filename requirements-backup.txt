@@ -1,0 +1,18 @@
+# Core packages
+numpy>=1.26.0,<2.0
+opencv-python==4.6.0.66
+streamlit==1.22.0
+
+# TensorFlow & Keras for Apple Silicon
+tensorflow==2.19.0
+tensorflow-macos
+tensorflow-metal
+
+# Optional: Image processing
+Pillow==9.5.0
+
+# Utilities
+tqdm==4.65.0
+pandas==2.0.3
+matplotlib==3.7.2
+scikit-learn==1.2.2
