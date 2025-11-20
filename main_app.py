@@ -19,7 +19,7 @@ def load_model():
 
 model = load_model()
 
-# Class names
+# Class names (same as before...)
 CLASS_NAMES = [
     "labrador_retriever", "golden_retriever", "german_shepherd", "french_bulldog",
     "pug", "beagle", "siberian_husky", "pomeranian", "chihuahua", "yorkshire_terrier",
@@ -47,6 +47,10 @@ if "result" not in st.session_state:
 if "opencv_image" not in st.session_state:
     st.session_state.opencv_image = None
 
+if "identify_clicked" not in st.session_state:
+    st.session_state.identify_clicked = False
+
+
 # Upload image
 dog_image = st.file_uploader(
     "Upload an image of the dog...",
@@ -58,36 +62,40 @@ dog_image = st.file_uploader(
 if dog_image is None:
     st.session_state.result = None
     st.session_state.opencv_image = None
+    st.session_state.identify_clicked = False
 
 # If file uploaded
 if dog_image is not None:
 
-    # Read file
     file_bytes = np.asarray(bytearray(dog_image.read()), dtype=np.uint8)
-    opencv_image = cv2.imdecode(file_bytes, 1)
+    img = cv2.imdecode(file_bytes, 1)
 
-    if opencv_image is None:
+    if img is None:
         st.error("Failed to read the image. Try another file.")
     else:
-        # Convert and store image
-        opencv_image = cv2.cvtColor(opencv_image, cv2.COLOR_BGR2RGB)
-        st.session_state.opencv_image = opencv_image
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        st.session_state.opencv_image = img
 
-        # Show image
-        st.image(opencv_image, channels="RGB", width=250)
+        st.image(img, channels="RGB", width=250)
 
-        # Identify button
-        if st.button("Identify", disabled=st.session_state.loading):
+        # Identify button (will be disabled when loading)
+        clicked = st.button("Identify", disabled=st.session_state.loading)
+
+        if clicked:
             st.session_state.loading = True
+            st.session_state.identify_clicked = True
 
-# If loading → run prediction
-if st.session_state.loading:
+
+# Prediction logic
+if st.session_state.loading and st.session_state.identify_clicked:
 
     if st.session_state.opencv_image is None:
         st.error("Image is missing. Please upload again.")
         st.session_state.loading = False
+        st.session_state.identify_clicked = False
     else:
         with st.spinner("Identifying..."):
+
             img = cv2.resize(st.session_state.opencv_image, (224, 224))
             img = img / 255.0
             img = np.expand_dims(img, axis=0)
@@ -96,6 +104,8 @@ if st.session_state.loading:
             st.session_state.result = CLASS_NAMES[np.argmax(preds)]
 
         st.session_state.loading = False
+        st.session_state.identify_clicked = False
+
 
 # Show result
 if st.session_state.result:
