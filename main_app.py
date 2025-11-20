@@ -2,7 +2,7 @@
 import numpy as np
 import streamlit as st
 import cv2
-from tensorflow.keras.models import load_model
+from model_architecture import build_model
 
 st.set_page_config(
     page_title="Dog Breed Predictor",
@@ -11,7 +11,8 @@ st.set_page_config(
 )
 
 #Loading the Model
-model = load_model('dog_breed_50.h5')
+model = build_model(num_classes=50)
+model.load_weights("dog_breed_50.h5")
 
 #Name of Classes
 CLASS_NAMES = [
