@@ -1,20 +1,22 @@
-# Library imports
+# === Streamlit Dog Breed Predictor App (with simple explanations) ===
+# Import library yang dibutuhkan
 import numpy as np
 import streamlit as st
 import cv2
 from model_architecture import build_model
 
+# Set tampilan halaman Streamlit
 st.set_page_config(
-    page_title="Dog Breed Predictor",
-    page_icon="🐶",
-    layout="centered"
+    page_title="Dog Breed Predictor",  # Judul tab
+    page_icon="🐶",                   # Icon tab
+    layout="centered"                 # Layout tengah
 )
 
-# Load model
-model = build_model(num_classes=50)
-model.load_weights("dog_breed_50.h5")
+# Load model machine learning
+model = build_model(num_classes=50)         # Membuat arsitektur model
+model.load_weights("dog_breed_50.h5")      # Memuat bobot model hasil training
 
-# Class names
+# Daftar nama ras anjing (urutan sesuai output model)
 CLASS_NAMES = [
     "labrador_retriever", "golden_retriever", "german_shepherd", "french_bulldog",
     "pug", "beagle", "siberian_husky", "pomeranian", "chihuahua",
@@ -30,65 +32,64 @@ CLASS_NAMES = [
     "scottish_deerhound", "afghan_hound", "saluki"
 ]
 
-# App title
+# Judul aplikasi
 st.title("Dog Breed Identification")
 
-# Initialize session states
+# Session state untuk menyimpan status aplikasi
 if "loading" not in st.session_state:
-    st.session_state.loading = False
+    st.session_state.loading = False  # Menandakan apakah sedang memproses
 
 if "result" not in st.session_state:
-    st.session_state.result = None
+    st.session_state.result = None    # Menyimpan hasil prediksi
 
 if "opencv_image" not in st.session_state:
-    st.session_state.opencv_image = None
+    st.session_state.opencv_image = None  # Menyimpan gambar yang sudah diproses
 
-# File upload
+# Komponen upload file gambar
 dog_image = st.file_uploader(
-    "Upload an image of the dog...",
-    type=["png", "jpg", "jpeg"],
-    disabled=st.session_state.loading
+    "Upload an image of the dog...",       # Teks di UI
+    type=["png", "jpg", "jpeg"],         # Format valid
+    disabled=st.session_state.loading       # Disable jika sedang memproses
 )
 
-# Reset result if no file
+# Reset jika tidak ada gambar
 if dog_image is None:
     st.session_state.result = None
     st.session_state.opencv_image = None
 
-# If file uploaded
+# Jika gambar di-upload
 if dog_image is not None:
-    # Read image bytes
-    file_bytes = np.asarray(bytearray(dog_image.read()), dtype=np.uint8)
-    opencv_image = cv2.imdecode(file_bytes, 1)
-    opencv_image = cv2.cvtColor(opencv_image, cv2.COLOR_BGR2RGB)
-    st.session_state.opencv_image = opencv_image
+    file_bytes = np.asarray(bytearray(dog_image.read()), dtype=np.uint8)  # Membaca file
+    opencv_image = cv2.imdecode(file_bytes, 1)                           # Decode ke OpenCV
+    opencv_image = cv2.cvtColor(opencv_image, cv2.COLOR_BGR2RGB)         # Konversi warna
+    st.session_state.opencv_image = opencv_image                         # Simpan gambar
 
-    # Show image
-    st.image(opencv_image, channels="RGB", width=250)
+    st.image(opencv_image, channels="RGB", width=250)  # Tampilkan gambar di layar
 
-    # Identify button
+    # Tombol identifikasi
     identify_clicked = st.button(
-        "Identify",
-        disabled=st.session_state.loading
+        "Identify",                          # Label tombol
+        disabled=st.session_state.loading      # Disable saat memproses
     )
 
+    # Jika tombol diklik, aktifkan proses
     if identify_clicked:
         st.session_state.loading = True
 
-# If loading = True → run prediction
+# Jika sedang memproses, lakukan prediksi
 if st.session_state.loading:
     with st.spinner("Identifying..."):
-        img = cv2.resize(st.session_state.opencv_image, (224, 224))
-        img = img / 255.0
-        img = np.expand_dims(img, axis=0)
+        img = cv2.resize(st.session_state.opencv_image, (224, 224))  # Resize ke ukuran input model
+        img = img / 255.0                                            # Normalisasi
+        img = np.expand_dims(img, axis=0)                            # Tambah batch dimensi
 
-        preds = model.predict(img)
-        st.session_state.result = CLASS_NAMES[np.argmax(preds)]
+        preds = model.predict(img)                                   # Jalankan prediksi
+        st.session_state.result = CLASS_NAMES[np.argmax(preds)]       # Pilih ras dengan skor tertinggi
 
     st.session_state.loading = False
 
-# Show result
+# Tampilkan hasil prediksi
 if st.session_state.result:
     st.title(
-        f"The Dog Breed is {st.session_state.result.replace('_', ' ').title()}"
+        f"The Dog Breed is {st.session_state.result.replace('_', ' ').title()}"  # Format teks hasil
     )
